@@ -23,8 +23,7 @@ logger.addHandler(sh)
 
 ghRootEndpoint = 'https://api.github.com'
 
-# ghAPIToken = os.environ['GITHUB_API_TOKEN']
-ghAPIToken='8eac7fd7878b963c52fb64e2deab47503d85c50d'
+ghAPIToken = os.environ['GITHUB_API_TOKEN']
 logger.info("GITHUB_API_TOKEN='{}'".format(shortenMiddle(ghAPIToken, 6)))
 
 REPO_AND_BRANCH_txt = open("REPO_BRANCH_LIST_BH.txt","r").read()
