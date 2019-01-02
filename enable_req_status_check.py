@@ -26,8 +26,7 @@ ghRootEndpoint = 'https://api.github.com'
 branchProtectionURL = "/repos/RealImage/{repo}/branches/{branch}/protection"
 getStatusCheckURLTemplate = branchProtectionURL + "/required_status_checks"
 
-# ghAPIToken = os.environ['GITHUB_API_TOKEN']
-ghAPIToken = '0637c9a84aff0a73ca9c58199ad9646de781ff32'
+ ghAPIToken = os.environ['GITHUB_API_TOKEN']
 
 logger.info("GITHUB_API_TOKEN='{}'".format(shortenMiddle(ghAPIToken, 6)))
 headers = {'Authorization': 'token ' + ghAPIToken}
