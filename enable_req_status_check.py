@@ -3,6 +3,7 @@ import logging
 import requests
 import json
 import argparse
+import pprint
 
 
 def shortenMiddle(s, n):
@@ -22,14 +23,16 @@ sh.setLevel(logging.DEBUG)
 logger.addHandler(sh)
 
 ghRootEndpoint = 'https://api.github.com'
-requestStatusEnableURL = "/repos/RealImage/{repo}/branches/{branch}/protection"
-getStatusCheckURL = requestStatusEnableURL+"/required_status_checks"
+branchProtectionURL = "/repos/RealImage/{repo}/branches/{branch}/protection"
+getStatusCheckURLTemplate = branchProtectionURL + "/required_status_checks"
 
-ghAPIToken = os.environ['GITHUB_API_TOKEN']
+# ghAPIToken = os.environ['GITHUB_API_TOKEN']
+ghAPIToken = '0637c9a84aff0a73ca9c58199ad9646de781ff32'
+
 logger.info("GITHUB_API_TOKEN='{}'".format(shortenMiddle(ghAPIToken, 6)))
 headers = {'Authorization': 'token ' + ghAPIToken}
 
-payload = json.dumps(
+branchProtectionPayload = json.dumps(
     {
         "required_status_checks":
             {
@@ -44,43 +47,45 @@ payload = json.dumps(
 
 # repoBranchTxt = open("REPO_BRANCH_LIST.txt", "r").read()
 
-def main(inputtextfile):
-    global repoBranchPair
+def parseRepoBranchPairs(repoBranchPairsTxt):
+
     # repoBranchTxt = open("{}.txt".format(inputtextfile), "r").read()
-    repoBranchTxt = open(inputtextfile, "r").read()
+    repoBranchTxt = open(repoBranchPairsTxt, "r").read()
     reposAndBranchesList = repoBranchTxt.split('\n')
 
     for repoBranchPair in reposAndBranchesList:
         repoBranchPair = repoBranchPair.split(',')
-    if len(repoBranchPair) == 2:
-        branch = repoBranchPair[1]
-    else:
-        branch = 'master'
+        if len(repoBranchPair) == 2:
+            branch = repoBranchPair[1]
+        else:
+            branch = 'master'
 
-    enableReqStatCheck(repoBranchPair[0], branch)
+        enableRequiredStatusCheck(repoBranchPair[0], branch)
 
 
-def enableReqStatCheck(repo, branch):
-    getStatusCheckURLformated = getStatusCheckURL.format(repo=repo,branch=branch)
+def enableRequiredStatusCheck(repo, branch):
+    getStatusCheckURL = getStatusCheckURLTemplate.format(repo=repo, branch=branch)
 
-    ghApiGetresponse = requests.get(ghRootEndpoint + getStatusCheckURLformated,
+    ghApiGetresponse = requests.get(ghRootEndpoint + getStatusCheckURL,
                                     headers=headers
                                     ).json()
 
     if not (ghApiGetresponse.get('strict')):
 
-        requestStatusEnableURLformated = requestStatusEnableURL.format(repo=repo,
-                                                                       branch=branch)
-        logger.info("--Enabling Require status checks to pass before merging--")
-
-        ghApiPutResponse = requests.put(ghRootEndpoint + requestStatusEnableURLformated,
-                                        payload,
+        getStatusCheckURL = branchProtectionURL.format(repo=repo, branch=branch)
+        ghApiPutResponse = requests.put(ghRootEndpoint + getStatusCheckURL,
+                                        branchProtectionPayload,
                                         headers=headers
                                         ).json()
-        logger.info(ghApiPutResponse)
+
+        if ghApiPutResponse["required_status_checks"]["strict"] == True:
+            logger.info("Enabled  r: {repo}, b: {branch}".format(repo=repo ,branch=branch))
+            logger.info(pprint.pprint(ghApiPutResponse["required_status_checks"]))
+        else:
+            logger.info(ghApiPutResponse)
 
     else:
-        logger.info("ALREADY ENABLED")
+        logger.info("Already enabled  r: {repo}, b: {branch}".format(repo=repo,branch=branch))
 
 
 if __name__ == '__main__':
@@ -107,12 +112,12 @@ if __name__ == '__main__':
     arg = parser.parse_args()
 
     if arg.file is not None:
-        main(arg.file)
+        parseRepoBranchPairs(arg.file)
     else:
         if arg.branch is None:
             branch = "master"
         else:
             branch = arg.branch
 
-        enableReqStatCheck(arg.repo, branch)
+        enableRequiredStatusCheck(arg.repo, branch)
 
