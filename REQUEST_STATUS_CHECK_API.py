@@ -30,20 +30,20 @@ REPO_AND_BRANCH_txt = open("REPO_BRANCH_LIST_BH.txt","r").read()
 
 reposAndBranches = REPO_AND_BRANCH_txt.split('\n')
 
-for i in reposAndBranches:
-    i = i.split(',')
-    if len(i) == 2:
-        branch = i[1]
+for repoBranchPair in reposAndBranches:
+    repoBranchPair= repoBranchPair.split(',')
+    if len(repoBranchPair) == 2:
+        branch = repoBranchPair[1]
     else:
         branch = 'master'
         
-    getStatusCheckURL = "/repos/backdoorHall/{repo}/branches/{branch}/protection/required_status_checks".format(repo = i[0],branch = branch)
+    getStatusCheckURL = "/repos/backdoorHall/{repo}/branches/{branch}/protection/required_status_checks".format(repo = repoBranchPair[0],branch = branch)
     
     ghAPIresponse = requests.get(ghRootEndpoint+getStatusCheckURL,\
                           headers={'Authorization':'token ' + ghAPIToken}).json()
     #logger.info(ghAPIresponse)
     if not (ghAPIresponse.get('strict')):
-        protected_URL = "/repos/backdoorHall/{repo}/branches/{branch}/protection".format(repo = i[0],branch= branch )
+        protected_URL = "/repos/backdoorHall/{repo}/branches/{branch}/protection".format(repo = repoBranchPair[0],branch= branch )
         print("=====working on PATCH====")
         payload = json.dumps({"required_status_checks": {
     "strict": True,
