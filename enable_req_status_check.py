@@ -5,14 +5,12 @@ import json
 import argparse
 import pprint
 
-
 def shortenMiddle(s, n):
     sLen = len(s)
     if sLen > n:
         halfN = int(n / 2)
         return s[:halfN] + '...' + s[-halfN:]
     return s
-
 
 logger = logging.getLogger('enable_req_status_check')
 logger.setLevel(logging.DEBUG)
